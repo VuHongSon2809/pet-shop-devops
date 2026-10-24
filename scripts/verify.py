@@ -179,8 +179,8 @@ def main():
                         env["POSTGRES_DB"], "-c", "CREATE TABLE hack_test(id int)")
     check("hard", "User DB của web không được tạo bảng", code != 0 and "permission denied" in out, out.splitlines()[0] if out else "")
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
-    code, tracked = sh("git", "ls-files", ".env")
-    check("hard", ".env không bị commit", ".env" in gitignore and not tracked.strip())
+    code, tracked = sh("git", "-c", "safe.directory=*", "ls-files", ".env")
+    check("hard", ".env không bị commit", ".env" in gitignore and code == 0 and not tracked.strip())
 
     total, passed = len(RESULTS), sum(1 for r in RESULTS if r)
     color = GREEN if passed == total else RED
