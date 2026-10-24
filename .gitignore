@@ -10,3 +10,6 @@ app/dev.sqlite3
 app/staticfiles/
 venv/
 .venv/
+
+# Cấu hình riêng của từng máy (vd: mở cổng quản trị trên IP mạng NAT nội bộ)
+compose.override.yaml
