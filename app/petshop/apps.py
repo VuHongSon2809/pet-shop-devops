@@ -9,6 +9,8 @@ class PetshopConfig(AppConfig):
     def ready(self):
         from prometheus_client import REGISTRY
 
+        from . import signals  # noqa: F401 – ghi log đăng nhập/đăng xuất
+
         from .metrics import PetshopCollector
 
         if not getattr(PetshopConfig, "_collector_registered", False):

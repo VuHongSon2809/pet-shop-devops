@@ -2,6 +2,15 @@
 # Chạy: docker compose up -d --build   (cần tạo .env trước bằng: python3 scripts/setup.py)
 name: petshop
 
+# Log của mọi container: driver json-file, xoay vòng 10MB x 3 file,
+# kèm nhãn tên service để Promtail gắn nhãn job (job="nginx", job="web"...)
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+    labels: "com.docker.compose.service,com.docker.compose.project"
+
 # Biến môi trường dùng chung cho web và migrate (chỉ truyền đúng biến cần thiết)
 x-app-env: &app-env
   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
@@ -16,11 +25,13 @@ x-app: &app
   build: ./app
   image: petshop-web:local
   environment: *app-env
+  logging: *default-logging
 
 services:
   # ---------- Database ----------
   db:
     image: postgres:16-alpine
+    logging: *default-logging
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -66,6 +77,7 @@ services:
   # ---------- Reverse proxy ----------
   nginx:
     image: nginxinc/nginx-unprivileged:1.28-alpine
+    logging: *default-logging
     restart: unless-stopped
     environment:
       NGINX_ENTRYPOINT_QUIET_LOGS: "1"
@@ -83,6 +95,7 @@ services:
   # ---------- Công cụ quản lý DB ----------
   pgadmin:
     image: dpage/pgadmin4:9.17.0
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
@@ -101,6 +114,7 @@ services:
   # ---------- Giám sát: Prometheus + Grafana + exporters ----------
   prometheus:
     image: prom/prometheus:v3.13.4
+    logging: *default-logging
     restart: unless-stopped
     command:
       - --config.file=/etc/prometheus/prometheus.yml
@@ -114,6 +128,7 @@ services:
 
   grafana:
     image: grafana/grafana:12.4.12
+    logging: *default-logging
     restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
@@ -132,6 +147,7 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
     depends_on:
       - prometheus
+      - loki
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:3000/api/health | grep -q ok"]
       interval: 15s
@@ -141,6 +157,7 @@ services:
   # Metrics CPU/RAM/mạng của các container (cần đọc thông tin của host)
   cadvisor:
     image: ghcr.io/google/cadvisor:v0.60.5
+    logging: *default-logging
     restart: unless-stopped
     command:
       - --docker_only=true
@@ -159,6 +176,7 @@ services:
   # Đọc trang stub_status nội bộ của Nginx và chuyển thành metrics
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:1.5.3
+    logging: *default-logging
     restart: unless-stopped
     command:
       - --nginx.scrape-uri=http://nginx:8081/stub_status
@@ -168,6 +186,7 @@ services:
   # Metrics của PostgreSQL (pg_up, số kết nối, giao dịch, dung lượng)
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.20.1
+    logging: *default-logging
     restart: unless-stopped
     environment:
       DATA_SOURCE_URI: db:5432/${POSTGRES_DB}?sslmode=disable
@@ -177,8 +196,32 @@ services:
       db:
         condition: service_healthy
 
+  # ---------- Log tập trung: Loki + Promtail ----------
+  loki:
+    image: grafana/loki:3.6.11
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["-config.file=/etc/loki/config.yml"]
+    volumes:
+      - ./loki/config.yml:/etc/loki/config.yml:ro
+      - loki:/loki
+
+  promtail:
+    image: grafana/promtail:3.6.11
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro   # file log của Docker (chỉ đọc)
+      - promtail:/var/lib/promtail
+    depends_on:
+      - loki
+
 volumes:
   pgdata:
   pgadmin:
   prometheus:
   grafana:
+  loki:
+  promtail:

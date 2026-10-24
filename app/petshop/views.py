@@ -31,7 +31,7 @@ def healthz(request):
             cursor.execute("SELECT 1")
         return JsonResponse({"status": "ok", "database": "ok"})
     except Exception:  # noqa: BLE001
-        log.exception("healthcheck database error")
+        log.exception("event=healthcheck_failed")
         return JsonResponse({"status": "error", "database": "unreachable"}, status=503)
 
 
@@ -132,7 +132,8 @@ class CrudForm(CrudMixin):
     def form_valid(self, form):
         response = super().form_valid(form)
         action = "tạo" if isinstance(self, CreateView) else "cập nhật"
-        log.info("%s %s id=%s user=%s", self.slug, action, self.object.pk, self.request.user.username)
+        event = "create" if isinstance(self, CreateView) else "update"
+        log.info("event=%s_%s id=%s user=%s", self.slug, event, self.object.pk, self.request.user.username)
         messages.success(self.request, f"Đã {action} {self.title.lower()}: {self.object}")
         return response
 
@@ -147,7 +148,7 @@ class CrudDelete(CrudMixin, DeleteView):
         except ProtectedError:
             messages.error(self.request, f"Không thể xóa “{obj}” vì đang có dữ liệu liên quan.")
             return redirect(self.get_success_url())
-        log.info("%s xoa id=%s user=%s", self.slug, obj.pk, self.request.user.username)
+        log.info("event=%s_delete id=%s user=%s", self.slug, obj.pk, self.request.user.username)
         messages.success(self.request, f"Đã xóa: {obj}")
         return redirect(self.get_success_url())
 
@@ -204,6 +205,6 @@ def appointment_set_status(request, pk, status):
         old = appt.status
         appt.status = status
         appt.save(update_fields=["status"])
-        log.info("appointment status id=%s %s->%s user=%s", pk, old, status, request.user.username)
+        log.info("event=appointment_status id=%s from=%s to=%s user=%s", pk, old, status, request.user.username)
         messages.success(request, f"Lịch #{pk}: {appt.get_status_display()}")
     return redirect(request.POST.get("next") or reverse_lazy("appointment_list"))

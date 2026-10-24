@@ -129,11 +129,16 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "plain": {"format": "%(asctime)s level=%(levelname)s logger=%(name)s msg=\"%(message)s\""},
+        # Log nghiệp vụ dạng key=value (logfmt) để LogQL tách trường bằng | logfmt
+        "kv": {"format": "%(asctime)s level=%(levelname)s logger=%(name)s %(message)s"},
     },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "plain"},
+        "kv": {"class": "logging.StreamHandler", "formatter": "kv"},
+    },
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
         "django.request": {"handlers": ["console"], "level": "WARNING", "propagate": False},
-        "petshop": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "petshop": {"handlers": ["kv"], "level": "INFO", "propagate": False},
     },
 }

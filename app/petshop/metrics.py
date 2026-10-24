@@ -34,4 +34,4 @@ class PetshopCollector:
                 value=SpaService.objects.filter(is_active=True).count(),
             )
         except Exception:  # noqa: BLE001 – không để lỗi DB làm hỏng endpoint /metrics
-            log.exception("không đọc được metrics nghiệp vụ")
+            log.exception("event=metrics_error")

@@ -1,0 +1,38 @@
+# Promtail đọc file log JSON mà Docker ghi cho mỗi container, gắn nhãn rồi đẩy vào Loki.
+# Tên service (nginx, web, db...) lấy từ thuộc tính "attrs" do logging driver json-file thêm vào
+# (xem cấu hình x-logging trong compose.yaml) -> nhãn job="nginx", job="web", ...
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker-containers
+    static_configs:
+      - targets: [localhost]
+        labels:
+          host: petshop-vm
+          __path__: /var/lib/docker/containers/*/*-json.log
+    pipeline_stages:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            time: time
+            service: 'attrs."com.docker.compose.service"'
+            project: 'attrs."com.docker.compose.project"'
+      - labels:
+          job: service
+          project:
+          stream:
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+      - output:
+          source: output

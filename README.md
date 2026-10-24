@@ -8,12 +8,15 @@ Website quản lý **thú cưng, dịch vụ spa, khách hàng và lịch hẹn*
 | Cơ sở dữ liệu | PostgreSQL 16 + pgAdmin 4 |
 | Reverse proxy | Nginx (HTTPS tự ký + security headers) |
 | Giám sát | Prometheus + Grafana, cAdvisor, nginx-prometheus-exporter, postgres-exporter |
+| Log tập trung | Loki + Promtail, truy vấn LogQL trong Grafana |
 
 ```
 Trình duyệt ──HTTPS──▶ Nginx ──HTTP──▶ Django (web) ──SQL──▶ PostgreSQL ◀── pgAdmin
 
 Prometheus ◀── cAdvisor (container) · nginx-exporter (web server) · postgres-exporter (DB) · /metrics Django
 Grafana ──▶ Prometheus
+
+Docker (json-file log) ──▶ Promtail ──▶ Loki ◀── Grafana (LogQL)
 ```
 
 ## 1. Yêu cầu môi trường
@@ -68,16 +71,32 @@ Trong pgAdmin, server **PetShop PostgreSQL** đã khai báo sẵn (host `db`, us
   kết nối/giao dịch/dung lượng PostgreSQL và số lịch hẹn theo trạng thái (đọc từ DB).
 - Endpoint `/metrics` của Django chỉ truy cập được trong mạng Docker; qua Nginx trả về 404.
 
-## 5. Lệnh thường dùng
+## 5. Log tập trung (Loki + Promtail)
+
+- Mọi container ghi log bằng driver `json-file` (xoay vòng 10 MB × 3) kèm nhãn tên service.
+- Promtail đọc `/var/lib/docker/containers/*/*-json.log` (chỉ đọc), gắn nhãn `job=<tên service>` rồi đẩy vào Loki.
+- Nginx ghi access log dạng JSON; web ghi log sự kiện dạng `event=... user=... ip=...` (logfmt).
+- Grafana → **Explore** → chọn **Loki**. Các câu truy vấn mẫu: [docs/logql.md](docs/logql.md).
+
+```logql
+{job="nginx"}
+{job="nginx"} | json | method="GET"
+sum(count_over_time({job="nginx"}[5m]))
+{job="nginx"} | json | status >= 400
+{job="web"} | logfmt | event="login_failed"
+```
+
+## 6. Lệnh thường dùng
 
 ```bash
-docker compose logs -f web nginx     # xem log
+docker compose logs -f web nginx     # xem log trực tiếp
+docker compose logs --tail=50 promtail loki  # kiểm tra Promtail/Loki khi Explore không có log
 docker compose restart nginx         # nạp lại cấu hình Nginx
 docker compose down                  # dừng (giữ dữ liệu)
 docker compose down -v               # dừng và XÓA dữ liệu – cẩn thận!
 ```
 
-## 6. Cấu trúc thư mục
+## 7. Cấu trúc thư mục
 
 ```
 app/            Mã nguồn Django + Dockerfile
@@ -85,6 +104,9 @@ nginx/          Cấu hình reverse proxy, security headers, chứng chỉ (khô
 pgadmin/        Khai báo sẵn server cho pgAdmin
 prometheus/     Danh sách target cần thu thập metrics
 grafana/        Provisioning datasource + dashboard JSON
+loki/           Cấu hình Loki (lưu log 7 ngày)
+promtail/       Cấu hình Promtail (đọc log Docker, gắn nhãn job)
+docs/           Tài liệu truy vấn LogQL
 scripts/        setup.py: sinh .env và chứng chỉ
 compose.yaml    Định nghĩa toàn bộ dịch vụ
 ```
