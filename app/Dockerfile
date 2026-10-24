@@ -22,9 +22,10 @@ RUN DJANGO_SECRET_KEY=build-only python manage.py collectstatic --noinput
 USER 10001:10001
 EXPOSE 8000
 
+# 1 process + 4 thread: metrics Prometheus nằm trong 1 process nên số liệu nhất quán
 CMD ["gunicorn", "config.wsgi:application", \
      "--bind", "0.0.0.0:8000", \
-     "--workers", "3", \
+     "--workers", "1", "--threads", "4", \
      "--worker-tmp-dir", "/dev/shm", \
      "--access-logfile", "-", \
      "--forwarded-allow-ips", "*"]

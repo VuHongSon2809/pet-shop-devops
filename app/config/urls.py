@@ -10,5 +10,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("dang-nhap/", auth_views.LoginView.as_view(), name="login"),
     path("dang-xuat/", auth_views.LogoutView.as_view(), name="logout"),
+    path("", include("django_prometheus.urls")),  # /metrics – chỉ Prometheus truy cập nội bộ
     path("", include("petshop.urls")),
 ]

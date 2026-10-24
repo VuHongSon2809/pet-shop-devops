@@ -25,10 +25,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_prometheus",
     "petshop",
 ]
 
 MIDDLEWARE = [
+    # Đo số request, độ trễ, mã trạng thái cho Prometheus
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -37,6 +40,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -62,7 +66,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 if os.environ.get("DB_HOST"):
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
+            "ENGINE": "django_prometheus.db.backends.postgresql",  # PostgreSQL + đếm truy vấn
             "HOST": os.environ["DB_HOST"],
             "PORT": os.environ.get("DB_PORT", "5432"),
             "NAME": os.environ.get("DB_NAME", "petshop"),
