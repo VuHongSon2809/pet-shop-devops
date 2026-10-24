@@ -22,7 +22,7 @@ CERT_DIR = ROOT / "nginx" / "certs"
 
 def detect_ip():
     try:
-        out = subprocess.run(["hostname", "-I"], capture_output=True, text=True, check=True).stdout.split()
+        out = subprocess.run(["hostname", "-I"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, check=True).stdout.split()
         if out:
             return out[0]
     except (OSError, subprocess.CalledProcessError):
@@ -77,7 +77,7 @@ def write_cert(ip):
         "openssl", "req", "-x509", "-nodes", "-newkey", "rsa:2048", "-sha256", "-days", "365",
         "-keyout", str(key), "-out", str(crt),
         "-subj", "/C=VN/ST=Thai Nguyen/O=PAWSPA/CN=pawspa.local", "-addext", san,
-    ], check=True, capture_output=True)
+    ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Nginx trong container chạy bằng uid 101 nên cần đọc được file khóa (bind mount chỉ đọc)
     os.chmod(crt, 0o644)
     os.chmod(key, 0o644)

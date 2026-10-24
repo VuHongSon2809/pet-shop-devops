@@ -3,7 +3,7 @@
 
 Chạy tại thư mục gốc dự án:  python3 scripts/verify.py
 (Nếu user chưa thuộc nhóm docker thì chạy: sudo python3 scripts/verify.py)
-Chỉ dùng thư viện chuẩn của Python 3.8+.
+Chỉ dùng thư viện chuẩn, chạy được từ Python 3.6 (Ubuntu 18.04) trở lên.
 """
 import base64
 import json
@@ -31,7 +31,7 @@ def section(title):
 
 
 def sh(*args, timeout=30):
-    p = subprocess.run(list(args), cwd=ROOT, capture_output=True, text=True, timeout=timeout)
+    p = subprocess.run(list(args), cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=timeout)
     return p.returncode, (p.stdout + p.stderr).strip()
 
 
