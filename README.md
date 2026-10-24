@@ -34,7 +34,7 @@ sudo usermod -aG docker $USER   # đăng xuất/đăng nhập lại để dùng 
 ## 2. Chạy lần đầu
 
 ```bash
-git clone https://github.com/<MSSV>/pet-shop-devops.git
+git clone https://github.com/VuHongSon2809/pet-shop-devops.git
 cd pet-shop-devops
 python3 scripts/setup.py            # sinh .env (mật khẩu ngẫu nhiên) + chứng chỉ HTTPS tự ký
 docker compose config --quiet       # kiểm tra cấu hình
