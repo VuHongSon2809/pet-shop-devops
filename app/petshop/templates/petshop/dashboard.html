@@ -1,0 +1,27 @@
+{% extends "petshop/base.html" %}
+{% load petshop_extras %}
+{% block title %}Tổng quan{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Tổng quan</h1>
+  <a class="btn" href="{% url 'appointment_create' %}">+ Đặt lịch hẹn</a>
+</div>
+
+<div class="stats">
+  {% for label, value, url in stats %}
+  <a class="stat" href="{% url url %}"><span>{{ label }}</span><strong>{{ value }}</strong></a>
+  {% endfor %}
+  <div class="stat accent"><span>Doanh thu tháng (đã hoàn thành)</span><strong>{{ month_revenue|vnd }}</strong></div>
+</div>
+
+<div class="two-col">
+  <section class="panel">
+    <h2>Lịch hôm nay</h2>
+    {% include "petshop/_appointment_table.html" with items=today empty="Hôm nay chưa có lịch hẹn." %}
+  </section>
+  <section class="panel">
+    <h2>Sắp tới</h2>
+    {% include "petshop/_appointment_table.html" with items=upcoming empty="Không có lịch sắp tới." %}
+  </section>
+</div>
+{% endblock %}

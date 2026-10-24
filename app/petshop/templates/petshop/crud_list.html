@@ -1,0 +1,42 @@
+{% extends "petshop/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  <a class="btn" href="{{ create_url }}">+ Thêm mới</a>
+</div>
+<form method="get" class="toolbar">
+  <input class="input" type="search" name="q" value="{{ q }}" placeholder="Tìm kiếm...">
+  {% if status_choices %}
+  <select class="input" name="status">
+    <option value="">Mọi trạng thái</option>
+    {% for value, label in status_choices %}<option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <button class="btn ghost">Lọc</button>
+</form>
+<table class="table">
+  <thead><tr>{% for attr, label in columns %}<th>{{ label }}</th>{% endfor %}<th></th></tr></thead>
+  <tbody>
+  {% for obj, cells in rows %}
+    <tr>
+      {% for c in cells %}<td>{% if slug == "appointment" and forloop.last %}<span class="badge {{ obj.status }}">{{ c }}</span>{% else %}{{ c|default:"—" }}{% endif %}</td>{% endfor %}
+      <td class="actions">
+        {% if slug == "appointment" %}{% include "petshop/_status_buttons.html" with a=obj %}{% endif %}
+        <a href="{% url slug|add:'_update' obj.pk %}">Sửa</a>
+        <a class="danger" href="{% url slug|add:'_delete' obj.pk %}">Xóa</a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="{{ columns|length|add:1 }}" class="muted">Không có dữ liệu.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if is_paginated %}
+<nav class="pager">
+  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}">‹ Trước</a>{% endif %}
+  <span>Trang {{ page_obj.number }}/{{ paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ q }}">Sau ›</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

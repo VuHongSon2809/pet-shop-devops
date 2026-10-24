@@ -1,0 +1,10 @@
+{% extends "petshop/base.html" %}
+{% block title %}Xóa {{ title|lower }}{% endblock %}
+{% block content %}
+<form method="post" class="panel">
+  {% csrf_token %}
+  <h1>Xóa {{ title|lower }}?</h1>
+  <p>Bạn chắc chắn muốn xóa <strong>{{ object }}</strong>? Thao tác này không thể hoàn tác.</p>
+  <button class="btn danger">Xóa</button> <a href="{{ list_url }}">Hủy</a>
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+# Bí mật: không bao giờ commit
+.env
+nginx/certs/*
+!nginx/certs/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+app/dev.sqlite3
+app/staticfiles/
+venv/
+.venv/

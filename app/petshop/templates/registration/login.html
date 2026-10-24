@@ -1,0 +1,13 @@
+{% extends "petshop/base.html" %}
+{% block title %}Đăng nhập{% endblock %}
+{% block content %}
+<form method="post" class="panel form narrow">
+  {% csrf_token %}
+  <h1>Đăng nhập nhân viên</h1>
+  {% if form.errors %}<div class="alert error">Sai tên đăng nhập hoặc mật khẩu.</div>{% endif %}
+  <label class="field"><span>Tên đăng nhập</span><input class="input" name="username" autocomplete="username" required autofocus></label>
+  <label class="field"><span>Mật khẩu</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn">Đăng nhập</button>
+</form>
+{% endblock %}

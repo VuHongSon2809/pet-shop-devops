@@ -1,0 +1,7 @@
+{% if a.status == "pending" %}
+<form method="post" action="{% url 'appointment_status' a.pk 'confirmed' %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn tiny">Xác nhận</button></form>
+<form method="post" action="{% url 'appointment_status' a.pk 'cancelled' %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn tiny ghost">Hủy</button></form>
+{% elif a.status == "confirmed" %}
+<form method="post" action="{% url 'appointment_status' a.pk 'done' %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn tiny">Hoàn thành</button></form>
+<form method="post" action="{% url 'appointment_status' a.pk 'cancelled' %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn tiny ghost">Hủy</button></form>
+{% endif %}

@@ -1,0 +1,31 @@
+{% extends "petshop/base.html" %}
+{% load petshop_extras %}
+{% block title %}Trang chủ{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Spa & chăm sóc thú cưng</p>
+    <h1>Thơm tho, khỏe mạnh,<br>vui vẻ mỗi ngày.</h1>
+    <p class="lead">PAWSPA quản lý hồ sơ thú cưng, khách hàng, dịch vụ spa và lịch hẹn trên một hệ thống duy nhất.
+      Mở cửa 8:00 – 20:00 hằng ngày.</p>
+    <a class="btn" href="{% url 'login' %}">Vào trang quản lý</a>
+  </div>
+  <div class="hero-card">
+    <span class="paw-big">🐾</span>
+    <p>Đặt lịch qua quầy hoặc hotline<br><strong>0909 000 028</strong></p>
+  </div>
+</section>
+
+<h2 id="dich-vu">Bảng giá dịch vụ</h2>
+<div class="grid">
+  {% for s in services %}
+  <article class="card">
+    <h3>{{ s.name }}</h3>
+    <p class="muted">{{ s.description }}</p>
+    <p class="price">{{ s.price|vnd }} <span class="muted">· {{ s.duration_minutes }} phút</span></p>
+  </article>
+  {% empty %}
+  <p class="muted">Chưa có dịch vụ nào.</p>
+  {% endfor %}
+</div>
+{% endblock %}

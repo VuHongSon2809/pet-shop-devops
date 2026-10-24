@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PetShop PostgreSQL",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "petshop",
+      "Username": "petshop_owner",
+      "SSLMode": "prefer"
+    }
+  }
+}

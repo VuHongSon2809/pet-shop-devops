@@ -1,0 +1,20 @@
+{% extends "petshop/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{% if object %}Sửa{% else %}Thêm{% endif %} {{ title|lower }}</h1>
+  <a href="{{ list_url }}">← Quay lại danh sách</a>
+</div>
+<form method="post" class="panel form" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% for field in form %}
+  <label class="field">
+    <span>{{ field.label }}{% if field.field.required %} *{% endif %}</span>
+    {{ field }}
+    {% for e in field.errors %}<small class="err">{{ e }}</small>{% endfor %}
+  </label>
+  {% endfor %}
+  <div><button class="btn">Lưu</button></div>
+</form>
+{% endblock %}
